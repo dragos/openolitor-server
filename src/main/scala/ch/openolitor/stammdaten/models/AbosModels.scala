@@ -577,3 +577,18 @@ case class ZusatzAboDetail(
   abotyp: Option[ZusatzAbotyp],
   vertrieb: Option[Vertrieb]
 ) extends AboDetail
+
+case class ZusatzAboModify(
+  id: AboId,
+  abotypId: AbotypId,
+  hauptAboId: AboId,
+  kundeId: KundeId,
+  start: LocalDate,
+  ende: Option[LocalDate]
+) extends JSONSerializable
+
+case class ZusatzAboCreate(
+  abotypId: AbotypId,
+  hauptAboId: AboId,
+  kundeId: KundeId
+) extends JSONSerializable
