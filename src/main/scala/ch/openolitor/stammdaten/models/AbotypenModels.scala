@@ -24,8 +24,8 @@ package ch.openolitor.stammdaten.models
 
 import org.joda.time.DateTime
 import ch.openolitor.core.models._
-import org.joda.time.LocalDate
 import ch.openolitor.core.JSONSerializable
+import ch.openolitor.core.scalax.Tuple25
 import ch.openolitor.core.scalax.Tuple26
 
 sealed trait Lieferzeitpunkt extends Product
@@ -86,11 +86,11 @@ object Laufzeiteinheit {
 }
 
 trait AktivRange {
-  val aktivVon: Option[LocalDate]
-  val aktivBis: Option[LocalDate]
+  val aktivVon: Option[DateTime]
+  val aktivBis: Option[DateTime]
 
   def aktiv = {
-    val now = LocalDate.now();
+    val now = DateTime.now();
     (aktivVon map (_.isBefore(now)) getOrElse (true)) &&
       (aktivBis map (_.isAfter(now)) getOrElse (true))
   }
@@ -138,8 +138,8 @@ case class Abotyp(
   name: String,
   beschreibung: Option[String],
   lieferrhythmus: Rhythmus,
-  aktivVon: Option[LocalDate],
-  aktivBis: Option[LocalDate],
+  aktivVon: Option[DateTime],
+  aktivBis: Option[DateTime],
   preis: BigDecimal,
   preiseinheit: Preiseinheit,
   laufzeit: Option[Int],
@@ -203,8 +203,8 @@ case class AbotypModify(
   name: String,
   beschreibung: Option[String],
   lieferrhythmus: Rhythmus,
-  aktivVon: Option[LocalDate],
-  aktivBis: Option[LocalDate],
+  aktivVon: Option[DateTime],
+  aktivBis: Option[DateTime],
   preis: BigDecimal,
   preiseinheit: Preiseinheit,
   laufzeit: Option[Int],
