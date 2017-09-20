@@ -67,6 +67,8 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     with KorbHandler {
   self: StammdatenWriteRepositoryComponent =>
 
+  val FALSE = false
+
   // Hotfix
   lazy val startTime = DateTime.now.minusSeconds(sysConfig.mandantConfiguration.config.getIntOption("startTimeDelationSeconds") getOrElse 10)
 
@@ -108,7 +110,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     case e =>
   }
 
-  private def updateVertrieb(meta: EventMetadata, id: VertriebId, update: VertriebModify)(implicit personId: PersonId = meta.originator): Unit = {
+  def updateVertrieb(meta: EventMetadata, id: VertriebId, update: VertriebModify)(implicit personId: PersonId = meta.originator) = {
     DB localTxPostPublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(vertriebMapping, id) map { vertrieb =>
         //map all updatable fields
@@ -136,7 +138,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     }
   }
 
-  private def updateAbotyp(meta: EventMetadata, id: AbotypId, update: AbotypModify)(implicit personId: PersonId = meta.originator): Unit = {
+  def updateAbotyp(meta: EventMetadata, id: AbotypId, update: AbotypModify)(implicit personId: PersonId = meta.originator) = {
     DB localTxPostPublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(abotypMapping, id) map { abotyp =>
         //map all updatable fields
@@ -161,7 +163,6 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
   }
 
   def updateDepotlieferungVertriebsart(meta: EventMetadata, id: VertriebsartId, vertriebsart: DepotlieferungAbotypModify)(implicit personId: PersonId = meta.originator) = {
-  private def updateDepotlieferungVertriebsart(meta: EventMetadata, id: VertriebsartId, vertriebsart: DepotlieferungAbotypModify)(implicit personId: PersonId = meta.originator): Unit = {
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(depotlieferungMapping, id) map { depotlieferung =>
         //map all updatable fields
@@ -171,7 +172,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     }
   }
 
-  private def updatePostlieferungVertriebsart(meta: EventMetadata, id: VertriebsartId, vertriebsart: PostlieferungAbotypModify)(implicit personId: PersonId = meta.originator): Unit = {
+  def updatePostlieferungVertriebsart(meta: EventMetadata, id: VertriebsartId, vertriebsart: PostlieferungAbotypModify)(implicit personId: PersonId = meta.originator) = {
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(postlieferungMapping, id) map { lieferung =>
         //map all updatable fields
@@ -181,7 +182,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     }
   }
 
-  private def updateHeimlieferungVertriebsart(meta: EventMetadata, id: VertriebsartId, vertriebsart: HeimlieferungAbotypModify)(implicit personId: PersonId = meta.originator): Unit = {
+  def updateHeimlieferungVertriebsart(meta: EventMetadata, id: VertriebsartId, vertriebsart: HeimlieferungAbotypModify)(implicit personId: PersonId = meta.originator) = {
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(heimlieferungMapping, id) map { lieferung =>
         //map all updatable fields
@@ -191,7 +192,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     }
   }
 
-  private def updateKunde(meta: EventMetadata, kundeId: KundeId, update: KundeModify)(implicit personId: PersonId = meta.originator): Unit = {
+  def updateKunde(meta: EventMetadata, kundeId: KundeId, update: KundeModify)(implicit personId: PersonId = meta.originator) = {
     logger.debug(s"Update Kunde $kundeId => $update")
     if (update.ansprechpersonen.isEmpty) {
       logger.error(s"Update kunde without ansprechperson:$kundeId, update:$update")
@@ -205,7 +206,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     }
   }
 
-  private def updateKundendaten(meta: EventMetadata, kundeId: KundeId, update: KundeModify)(implicit session: DBSession, publisher: EventPublisher, personId: PersonId = meta.originator): Unit = {
+  private def updateKundendaten(meta: EventMetadata, kundeId: KundeId, update: KundeModify)(implicit session: DBSession, publisher: EventPublisher, personId: PersonId = meta.originator) = {
     stammdatenWriteRepository.getById(kundeMapping, kundeId) map { kunde =>
       //map all updatable fields
       val bez = update.bezeichnung.getOrElse(update.ansprechpersonen.head.fullName)
@@ -215,7 +216,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     }
   }
 
-  private def updatePersonen(meta: EventMetadata, kundeId: KundeId, update: KundeModify)(implicit session: DBSession, publisher: EventPublisher, personId: PersonId = meta.originator): Unit = {
+  private def updatePersonen(meta: EventMetadata, kundeId: KundeId, update: KundeModify)(implicit session: DBSession, publisher: EventPublisher, personId: PersonId = meta.originator) = {
     val personen = stammdatenWriteRepository.getPersonen(kundeId)
     update.ansprechpersonen.zipWithIndex.map {
       case (updatePerson, index) =>
@@ -230,7 +231,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     }
   }
 
-  private def updatePendenzen(meta: EventMetadata, kundeId: KundeId, update: KundeModify)(implicit session: DBSession, publisher: EventPublisher, personId: PersonId = meta.originator): Unit = {
+  private def updatePendenzen(meta: EventMetadata, kundeId: KundeId, update: KundeModify)(implicit session: DBSession, publisher: EventPublisher, personId: PersonId = meta.originator) = {
     val pendenzen = stammdatenWriteRepository.getPendenzen(kundeId)
     update.pendenzen.map {
       case updatePendenz =>
@@ -245,7 +246,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     }
   }
 
-  private def updateAbos(meta: EventMetadata, kundeId: KundeId, update: KundeModify)(implicit session: DBSession, publisher: EventPublisher, personId: PersonId = meta.originator): Unit = {
+  private def updateAbos(meta: EventMetadata, kundeId: KundeId, update: KundeModify)(implicit session: DBSession, publisher: EventPublisher, personId: PersonId = meta.originator) = {
     val kundeBez = update.ansprechpersonen.size match {
       case 1 => update.ansprechpersonen.head.fullName
       case _ => update.bezeichnung.getOrElse("")
@@ -272,7 +273,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     }
   }
 
-  private def updatePendenz(meta: EventMetadata, id: PendenzId, update: PendenzModify)(implicit personId: PersonId = meta.originator): Unit = {
+  def updatePendenz(meta: EventMetadata, id: PendenzId, update: PendenzModify)(implicit personId: PersonId = meta.originator) = {
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(pendenzMapping, id) map { pendenz =>
         //map all updatable fields
@@ -282,20 +283,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     }
   }
 
-  private def updateAuslieferungAusgeliefert(meta: EventMetadata, id: AuslieferungId, update: Auslieferung)(implicit personId: PersonId = meta.originator): Unit = {
-    DB autoCommitSinglePublish { implicit session => implicit publisher =>
-      update match {
-        case u: DepotAuslieferung =>
-          stammdatenWriteRepository.updateEntityFully[DepotAuslieferung, AuslieferungId](u)
-        case u: TourAuslieferung =>
-          stammdatenWriteRepository.updateEntityFully[TourAuslieferung, AuslieferungId](u)
-        case u: PostAuslieferung =>
-          stammdatenWriteRepository.updateEntityFully[PostAuslieferung, AuslieferungId](u)
-      }
-    }
-  }
-
-  private def updateAboGuthaben(meta: EventMetadata, id: AboId, update: AboGuthabenModify)(implicit personId: PersonId = meta.originator): Unit = {
+  def updateAboGuthaben(meta: EventMetadata, id: AboId, update: AboGuthabenModify)(implicit personId: PersonId = meta.originator) = {
     // Hotfix: only execute in live using the meta info to determine
     if (meta.timestamp.isAfter(this.startTime)) {
       DB localTxPostPublish { implicit session => implicit publisher =>
@@ -324,13 +312,26 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     }
   }
 
-  private def adjustGuthabenVorLieferung(id: AboId, guthaben: Int)(implicit personId: PersonId, session: DBSession, publisher: EventPublisher): Unit = {
+  private def adjustGuthabenVorLieferung(id: AboId, guthaben: Int)(implicit personId: PersonId, session: DBSession, publisher: EventPublisher) = {
     stammdatenWriteRepository.getKoerbeNichtAusgeliefertByAbo(id) map { korb =>
       stammdatenWriteRepository.updateEntity[Korb, KorbId](korb.id)(korbMapping.column.guthabenVorLieferung -> guthaben)
     }
   }
 
-  private def swapOrUpdateAboVertriebsart(meta: EventMetadata, abo: Abo, update: AboVertriebsartModify)(implicit personId: PersonId = meta.originator, session: DBSession, publisher: EventPublisher): Unit = {
+  def updateAuslieferungAusgeliefert(meta: EventMetadata, id: AuslieferungId, update: Auslieferung)(implicit personId: PersonId = meta.originator) = {
+    DB autoCommitSinglePublish { implicit session => implicit publisher =>
+      update match {
+        case u: DepotAuslieferung =>
+          stammdatenWriteRepository.updateEntityFully[DepotAuslieferung, AuslieferungId](u)
+        case u: TourAuslieferung =>
+          stammdatenWriteRepository.updateEntityFully[TourAuslieferung, AuslieferungId](u)
+        case u: PostAuslieferung =>
+          stammdatenWriteRepository.updateEntityFully[PostAuslieferung, AuslieferungId](u)
+      }
+    }
+  }
+
+  private def swapOrUpdateAboVertriebsart(meta: EventMetadata, abo: Abo, update: AboVertriebsartModify)(implicit personId: PersonId = meta.originator, session: DBSession, publisher: EventPublisher) = {
     (stammdatenWriteRepository.getById(depotlieferungMapping, update.vertriebsartIdNeu) map { va =>
       stammdatenWriteRepository.getById(depotMapping, va.depotId) map { depot =>
         abo match {
@@ -392,27 +393,21 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     })
   }
 
-  private def updateAboVertriebsart(meta: EventMetadata, id: AboId, update: AboVertriebsartModify)(implicit personId: PersonId = meta.originator): Unit = {
+  def updateAboVertriebsart(meta: EventMetadata, id: AboId, update: AboVertriebsartModify)(implicit personId: PersonId = meta.originator) = {
     DB localTxPostPublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(depotlieferungAboMapping, id) map { abo =>
-        val updatedAbo: Abo = abo.copy(vertriebId = update.vertriebIdNeu, vertriebsartId = update.vertriebsartIdNeu)
-        modifyKoerbeForAboDatumVertrieb(updatedAbo, Some(abo))
         swapOrUpdateAboVertriebsart(meta, abo, update)
       }
       stammdatenWriteRepository.getById(heimlieferungAboMapping, id) map { abo =>
-        val updatedAbo: Abo = abo.copy(vertriebId = update.vertriebIdNeu, vertriebsartId = update.vertriebsartIdNeu)
-        modifyKoerbeForAboDatumVertrieb(updatedAbo, Some(abo))
         swapOrUpdateAboVertriebsart(meta, abo, update)
       }
       stammdatenWriteRepository.getById(postlieferungAboMapping, id) map { abo =>
-        val updatedAbo: Abo = abo.copy(vertriebId = update.vertriebIdNeu, vertriebsartId = update.vertriebsartIdNeu)
-        modifyKoerbeForAboDatumVertrieb(updatedAbo, Some(abo))
         swapOrUpdateAboVertriebsart(meta, abo, update)
       }
     }
   }
 
-  private def updateDepotlieferungAbo(meta: EventMetadata, id: AboId, update: DepotlieferungAboModify)(implicit personId: PersonId = meta.originator): Unit = {
+  def updateDepotlieferungAbo(meta: EventMetadata, id: AboId, update: DepotlieferungAboModify)(implicit personId: PersonId = meta.originator) = {
     DB localTxPostPublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(depotlieferungAboMapping, id) map { abo =>
         //map all updatable fields
@@ -420,7 +415,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
         val copy = copyFrom(abo, update, "modifidat" -> meta.timestamp, "modifikator" -> personId, "aktiv" -> aktiv)
         stammdatenWriteRepository.updateEntityFully[DepotlieferungAbo, AboId](copy)
 
-        modifyKoerbeForAboDatumChange(copy, Some(abo))
+        modifyKoerbeForAbo(copy, Some(abo))
       }
     }
   }
@@ -445,12 +440,12 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
         val copy = copyFrom(abo, update, "modifidat" -> meta.timestamp, "modifikator" -> personId, "aktiv" -> aktiv)
         stammdatenWriteRepository.updateEntityFully[PostlieferungAbo, AboId](copy)
 
-        modifyKoerbeForAboDatumChange(copy, Some(abo))
+        modifyKoerbeForAbo(copy, Some(abo))
       }
     }
   }
 
-  private def updateHeimlieferungAbo(meta: EventMetadata, id: AboId, update: HeimlieferungAboModify)(implicit personId: PersonId = meta.originator): Unit = {
+  def updateHeimlieferungAbo(meta: EventMetadata, id: AboId, update: HeimlieferungAboModify)(implicit personId: PersonId = meta.originator) = {
     DB localTxPostPublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(heimlieferungAboMapping, id) map { abo =>
         //map all updatable fields
@@ -458,12 +453,12 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
         val copy = copyFrom(abo, update, "modifidat" -> meta.timestamp, "modifikator" -> personId, "aktiv" -> aktiv)
         stammdatenWriteRepository.updateEntityFully[HeimlieferungAbo, AboId](copy)
 
-        modifyKoerbeForAboDatumChange(copy, Some(abo))
+        modifyKoerbeForAbo(copy, Some(abo))
       }
     }
   }
 
-  private def updateDepot(meta: EventMetadata, id: DepotId, update: DepotModify)(implicit personId: PersonId = meta.originator): Unit = {
+  def updateDepot(meta: EventMetadata, id: DepotId, update: DepotModify)(implicit personId: PersonId = meta.originator) = {
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(depotMapping, id) map { depot =>
         //map all updatable fields
@@ -473,7 +468,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     }
   }
 
-  private def updateKundentyp(meta: EventMetadata, id: CustomKundentypId, update: CustomKundentypModify)(implicit personId: PersonId = meta.originator): Unit = {
+  def updateKundentyp(meta: EventMetadata, id: CustomKundentypId, update: CustomKundentypModify)(implicit personId: PersonId = meta.originator) = {
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(customKundentypMapping, id) map { kundentyp =>
 
@@ -496,7 +491,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     }
   }
 
-  private def updateProduzent(meta: EventMetadata, id: ProduzentId, update: ProduzentModify)(implicit personId: PersonId = meta.originator): Unit = {
+  def updateProduzent(meta: EventMetadata, id: ProduzentId, update: ProduzentModify)(implicit personId: PersonId = meta.originator) = {
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(produzentMapping, id) map { produzent =>
         //map all updatable fields
@@ -506,7 +501,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     }
   }
 
-  private def updateProdukt(meta: EventMetadata, id: ProduktId, update: ProduktModify)(implicit personId: PersonId = meta.originator): Unit = {
+  def updateProdukt(meta: EventMetadata, id: ProduktId, update: ProduktModify)(implicit personId: PersonId = meta.originator) = {
     DB localTxPostPublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(produktMapping, id) map { produkt =>
         //map all updatable fields
@@ -548,7 +543,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     }
   }
 
-  private def updateProduktekategorie(meta: EventMetadata, id: ProduktekategorieId, update: ProduktekategorieModify)(implicit personId: PersonId = meta.originator): Unit = {
+  def updateProduktekategorie(meta: EventMetadata, id: ProduktekategorieId, update: ProduktekategorieModify)(implicit personId: PersonId = meta.originator) = {
     DB localTxPostPublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(produktekategorieMapping, id) map { produktekategorie =>
 
@@ -574,14 +569,14 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     }
   }
 
-  private def updateTourlieferungen(meta: EventMetadata, tourId: TourId, update: TourModify)(implicit session: DBSession, publisher: EventPublisher, personId: PersonId = meta.originator): Unit = {
+  private def updateTourlieferungen(meta: EventMetadata, tourId: TourId, update: TourModify)(implicit session: DBSession, publisher: EventPublisher, personId: PersonId = meta.originator) = {
     update.tourlieferungen.map { tourLieferung =>
       val copy = tourLieferung.copy(modifidat = meta.timestamp, modifikator = meta.originator)
       stammdatenWriteRepository.updateEntityFully[Tourlieferung, AboId](copy)
     }
   }
 
-  private def updateAuslieferung(meta: EventMetadata, auslieferungId: AuslieferungId, update: TourAuslieferungModify)(implicit personId: PersonId = meta.originator): Unit = {
+  private def updateAuslieferung(meta: EventMetadata, auslieferungId: AuslieferungId, update: TourAuslieferungModify)(implicit personId: PersonId = meta.originator) = {
     DB localTxPostPublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(tourAuslieferungMapping, auslieferungId) map { tourAuslieferung =>
         update.koerbe.zipWithIndex.map {
@@ -598,7 +593,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     }
   }
 
-  private def updateTour(meta: EventMetadata, id: TourId, update: TourModify)(implicit personId: PersonId = meta.originator): Unit = {
+  def updateTour(meta: EventMetadata, id: TourId, update: TourModify)(implicit personId: PersonId = meta.originator) = {
     DB localTxPostPublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(tourMapping, id) map { tour =>
         //map all updatable fields
@@ -610,7 +605,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     }
   }
 
-  private def updateProjekt(meta: EventMetadata, id: ProjektId, update: ProjektModify)(implicit personId: PersonId = meta.originator): Unit = {
+  def updateProjekt(meta: EventMetadata, id: ProjektId, update: ProjektModify)(implicit personId: PersonId = meta.originator) = {
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(projektMapping, id) map { projekt =>
         //map all updatable fields
@@ -620,7 +615,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     }
   }
 
-  private def updateKontoDaten(meta: EventMetadata, id: KontoDatenId, update: KontoDatenModify)(implicit personId: PersonId = meta.originator): Unit = {
+  def updateKontoDaten(meta: EventMetadata, id: KontoDatenId, update: KontoDatenModify)(implicit personId: PersonId = meta.originator) = {
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(kontoDatenMapping, id) map { kontoDaten =>
         //map all updatable fields
@@ -630,7 +625,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     }
   }
 
-  private def updateLieferung(meta: EventMetadata, id: LieferungId, update: Lieferung)(implicit personId: PersonId = meta.originator): Unit = {
+  def updateLieferung(meta: EventMetadata, id: LieferungId, update: Lieferung)(implicit personId: PersonId = meta.originator) = {
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(lieferungMapping, id) map { lieferung =>
         //map all updatable fields
@@ -640,7 +635,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     }
   }
 
-  private def updateLieferplanung(meta: EventMetadata, id: LieferplanungId, update: LieferplanungModify)(implicit personId: PersonId = meta.originator): Unit = {
+  def updateLieferplanung(meta: EventMetadata, id: LieferplanungId, update: LieferplanungModify)(implicit personId: PersonId = meta.originator) = {
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(lieferplanungMapping, id) map { lieferplanung =>
         //map all updatable fields
@@ -651,13 +646,13 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
   }
 
   @deprecated("Neu werden die Lieferungen mit ihren Lieferpositionen über den Command ModifyLieferplanung erstellt", "1.0.8")
-  private def updateLieferpositionen(meta: EventMetadata, lieferungId: LieferungId, positionen: LieferpositionenModify)(implicit personId: PersonId = meta.originator): Unit = {
+  def updateLieferpositionen(meta: EventMetadata, lieferungId: LieferungId, positionen: LieferpositionenModify)(implicit personId: PersonId = meta.originator) = {
     DB localTxPostPublish { implicit session => implicit publisher =>
       recreateLieferpositionen(meta, lieferungId, positionen)
     }
   }
 
-  private def updateProjektVorlage(meta: EventMetadata, vorlageId: ProjektVorlageId, update: ProjektVorlageModify)(implicit personId: PersonId = meta.originator): Unit = {
+  def updateProjektVorlage(meta: EventMetadata, vorlageId: ProjektVorlageId, update: ProjektVorlageModify)(implicit personId: PersonId = meta.originator) = {
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(projektVorlageMapping, vorlageId) map { vorlage =>
         val copy = copyFrom(vorlage, update,
@@ -667,7 +662,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     }
   }
 
-  private def updateProjektVorlageDocument(meta: EventMetadata, vorlageId: ProjektVorlageId, update: ProjektVorlageUpload)(implicit personId: PersonId = meta.originator): Unit = {
+  def updateProjektVorlageDocument(meta: EventMetadata, vorlageId: ProjektVorlageId, update: ProjektVorlageUpload)(implicit personId: PersonId = meta.originator) = {
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(projektVorlageMapping, vorlageId) map { vorlage =>
         val copy = vorlage.copy(fileStoreId = Some(update.fileStoreId), modifidat = meta.timestamp, modifikator = personId)
@@ -676,7 +671,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     }
   }
 
-  private def updateKorbAuslieferungId(meta: EventMetadata, id: KorbId, entity: KorbAuslieferungModify)(implicit personId: PersonId = meta.originator): Unit = {
+  def updateKorbAuslieferungId(meta: EventMetadata, id: KorbId, entity: KorbAuslieferungModify)(implicit personId: PersonId = meta.originator) = {
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.updateEntity[Korb, KorbId](id)(
         korbMapping.column.auslieferungId -> Some(entity.auslieferungId)
@@ -684,7 +679,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     }
   }
 
-  private def updateVertriebRecalculationsModify(meta: EventMetadata, id: VertriebId, entity: VertriebRecalculationsModify)(implicit personId: PersonId = meta.originator): Unit = {
+  def updateVertriebRecalculationsModify(meta: EventMetadata, id: VertriebId, entity: VertriebRecalculationsModify)(implicit personId: PersonId = meta.originator) = {
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(vertriebMapping, id) map { vertrieb =>
         val copy = copyFrom(vertrieb, entity)
@@ -693,7 +688,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     }
   }
 
-  private def updateSammelbestellungStatusModify(meta: EventMetadata, id: SammelbestellungId, entity: SammelbestellungStatusModify)(implicit personId: PersonId = meta.originator): Unit = {
+  def updateSammelbestellungStatusModify(meta: EventMetadata, id: SammelbestellungId, entity: SammelbestellungStatusModify)(implicit personId: PersonId = meta.originator) = {
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(sammelbestellungMapping, id) map { sammelbestellung =>
         val copy = copyFrom(sammelbestellung, entity)
@@ -702,7 +697,7 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
     }
   }
 
-  private def updateLieferungAbgeschlossen(meta: EventMetadata, id: LieferungId, entity: LieferungAbgeschlossenModify)(implicit personId: PersonId = meta.originator): Unit = {
+  def updateLieferungAbgeschlossen(meta: EventMetadata, id: LieferungId, entity: LieferungAbgeschlossenModify)(implicit personId: PersonId = meta.originator) = {
     DB autoCommitSinglePublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(lieferungMapping, id) map { lieferung =>
         val copy = copyFrom(lieferung, entity)

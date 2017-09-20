@@ -20,22 +20,28 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.util
+package ch.openolitor.stammdaten.calculations
 
-import java.util.zip._
-import java.io.ByteArrayOutputStream
-import scala.util.Try
-import java.io.InputStream
-import java.io.File
-import java.io.FileOutputStream
-import java.io.FileInputStream
-import java.io.OutputStream
+import akka.actor.Actor
+import akka.actor.ActorLogging
+import ch.openolitor.core.SystemConfig
+import akka.actor.ActorSystem
+import akka.actor.Props
+import ch.openolitor.stammdaten.repositories.DefaultStammdatenWriteRepositoryComponent
+import ch.openolitor.core.calculations.Calculations._
+import ch.openolitor.core.calculations.BaseCalculationsSupervisor
+import akka.actor.ActorRef
 
-class ZipBuilderWithFile(file: File = File.createTempFile("report", ".zip")) extends ZipBuilder(new FileOutputStream(file)) {
-  file.deleteOnExit()
-
-  override def close(): Option[File] = {
-    super.close()
-    Try(file).toOption
-  }
+object StammdatenCalculations {
+  def props(sysConfig: SystemConfig, system: ActorSystem, entityStore: ActorRef): Props = Props(classOf[DefaultStammdatenCalculations], sysConfig, system, entityStore)
 }
+
+class StammdatenCalculations(val sysConfig: SystemConfig, val system: ActorSystem, val entityStore: ActorRef) extends BaseCalculationsSupervisor {
+  override lazy val calculators = Set(
+    context.actorOf(AktiveAbosCalculation.props(sysConfig, system, entityStore)),
+    context.actorOf(KorbStatusCalculation.props(sysConfig, system)),
+    context.actorOf(LieferungCounterCalculation.props(sysConfig, system))
+  )
+}
+
+class DefaultStammdatenCalculations(override val sysConfig: SystemConfig, override val system: ActorSystem, override val entityStore: ActorRef) extends StammdatenCalculations(sysConfig, system, entityStore) with DefaultStammdatenWriteRepositoryComponent

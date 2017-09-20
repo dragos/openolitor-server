@@ -79,11 +79,7 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
   val aboGuthabenModifyPersister = persister[AboGuthabenModify]("abo-guthaben-modify")
   implicit val aboGuthabenModifyV2Persister = persister[AboGuthabenModify, V2]("abo-guthaben-modify", from[V1]
     .to[V2](in => in.update('guthabenAlt ! set[Int](in.extract[Int]('guthabenNeu)))))
-
-  // TODO how to set vertriebId?!
-  implicit val aboVertriebsartModifyPersister = persister[AboVertriebsartModify, V2]("abo-vertriebsart-modify", from[V1]
-    .to[V2](in => in.update('vertriebIdNeu ! set[Int](0))))
-
+  implicit val aboVertriebsartModifyPersister = persister[AboVertriebsartModify]("abo-vertriebsart-modify")
   implicit val aboDLV2Persister = persister[DepotlieferungAboModify, V2]("depotlieferungabo-modify", from[V1]
     .to[V2](in => fixToOptionLocalDate(fixToLocalDate(in, 'start), 'ende)))
   implicit val aboPLV2Persister = persister[PostlieferungAboModify, V2]("postlieferungabo-modify", from[V1]
@@ -141,11 +137,8 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
   implicit val vorlageIdPersister = persister[ProjektVorlageId]("projekt-vorlage-id")
 
   val projektModifyPersister = persister[ProjektModify]("projekt-modify")
-  val projektModifyV2Persister = persister[ProjektModify, V2]("projekt-modify", from[V1]
+  implicit val projektModifyV2Persister = persister[ProjektModify, V2]("projekt-modify", from[V1]
     .to[V2](_.update('sprache ! set[Locale](Locale.GERMAN))))
-  implicit val projektModifyV3Persister = persister[ProjektModify, V3]("projekt-modify", from[V1]
-    .to[V2](_.update('sprache ! set[Locale](Locale.GERMAN)))
-    .to[V3](_.update('maintenanceMode ! set[Boolean](false))))
   implicit val projektIdPersister = persister[ProjektId]("projekt-id")
 
   // custom events
@@ -245,7 +238,7 @@ trait StammdatenEventStoreSerializer extends StammdatenJsonProtocol with EntityS
     tourCreatePersiter,
     tourModifyPersiter,
     tourIdPersister,
-    projektModifyV3Persister,
+    projektModifyV2Persister,
     projektIdPersister,
     abwesenheitCreateV2Persister,
     abwesenheitIdPersister,

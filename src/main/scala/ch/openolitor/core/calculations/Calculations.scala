@@ -20,7 +20,7 @@
 * with this program. If not, see http://www.gnu.org/licenses/                 *
 *                                                                             *
 \*                                                                           */
-package ch.openolitor.core.batch
+package ch.openolitor.core.calculations
 
 import com.typesafe.scalalogging.LazyLogging
 import scala.concurrent.duration._
@@ -31,37 +31,37 @@ import akka.actor.Cancellable
 import akka.actor.ActorRef
 import scala.util.Try
 
-object BatchJobs {
-  case object InitializeBatchJob
-  case object StartBatchJob
-  case object CancelBatchJob
+object Calculations {
+  case object InitializeCalculation
+  case object StartCalculation
+  case object CancelScheduledCalculation
 
-  case class BatchJobResult(duration: Duration)
+  case class CalculationResult(duration: Duration)
 }
 
-trait BaseBatchJobsSupervisor extends Actor with LazyLogging {
-  import BatchJobs._
+trait BaseCalculationsSupervisor extends Actor with LazyLogging {
+  import Calculations._
 
-  val batchJobs: Set[ActorRef]
+  val calculators: Set[ActorRef]
 
   def receive = {
-    case m @ (InitializeBatchJob | StartBatchJob | CancelBatchJob) =>
-      batchJobs foreach (_ ! m)
-    case result @ BatchJobResult(duration) =>
+    case m @ (InitializeCalculation | StartCalculation | CancelScheduledCalculation) =>
+      calculators foreach (_ ! m)
+    case result @ CalculationResult(duration) =>
       sender ! result
     case _ =>
   }
 }
 
-trait BaseBatchJob extends Actor with LazyLogging {
-  import BatchJobs._
+trait BaseCalculation extends Actor with LazyLogging {
+  import Calculations._
 
-  var batchJob: Option[Cancellable] = None
+  var scheduledCalculation: Option[Cancellable] = None
 
   /**
    * Perform the calculations needed
    */
-  protected def process(): Unit
+  protected def calculate(): Unit
 
   /**
    * Default implementation with calculation starting next midnight
@@ -69,23 +69,23 @@ trait BaseBatchJob extends Actor with LazyLogging {
   protected def handleInitialization(): Unit
 
   def receive = {
-    case InitializeBatchJob =>
+    case InitializeCalculation =>
       handleInitialization()
-    case StartBatchJob =>
+    case StartCalculation =>
       try {
         val start = DateTime.now.getMillis
-        process()
+        calculate()
         val duration = (DateTime.now.getMillis - start) millis
 
-        logger.debug(s"Batch job successful after ${duration}")
+        logger.debug(s"Calculation successful after ${duration}")
 
-        sender ! BatchJobResult(duration)
+        sender ! CalculationResult(duration)
       } catch {
         case e: Exception =>
-          logger.error("Batch job failed!", e)
+          logger.error("Calculation failed!", e)
       }
-    case CancelBatchJob =>
-      batchJob map (_.cancel())
+    case CancelScheduledCalculation =>
+      scheduledCalculation map (_.cancel())
     case _ =>
   }
 

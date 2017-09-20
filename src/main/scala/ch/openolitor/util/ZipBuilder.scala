@@ -29,10 +29,12 @@ import java.io.InputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.FileInputStream
-import java.io.OutputStream
 
-class ZipBuilder(outputStream: OutputStream) {
-  val zipOutputStream: ZipOutputStream = new ZipOutputStream(outputStream)
+class ZipBuilder {
+
+  val file = File.createTempFile("report", ".zip")
+  file.deleteOnExit()
+  val zipOutputStream: ZipOutputStream = new ZipOutputStream(new FileOutputStream(file))
 
   def addZipEntry(fileName: String, document: File): Try[Boolean] = {
     val is = new FileInputStream(document)
@@ -72,6 +74,6 @@ class ZipBuilder(outputStream: OutputStream) {
 
   def close(): Option[File] = {
     Try(zipOutputStream.close)
-    None
+    Try(file).toOption
   }
 }
