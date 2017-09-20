@@ -77,6 +77,10 @@ object BuildSettings {
 
 object OpenOlitorBuild extends Build {
   import BuildSettings._
+  import ScalaxbSettings._
+
+  lazy val scalikejdbcAsyncForkUri = uri("git://github.com/OpenOlitor/scalikejdbc-async.git#dev/support_up_to_9_joins")
+  lazy val scalikejdbcAsync = ProjectRef(scalikejdbcAsyncForkUri, "core")
 
   lazy val sprayJsonMacro = RootProject(uri("git://github.com/zackangelo/spray-json-macros.git"))
   lazy val macroSub = Project("macro", file("macro"), settings = buildSettings ++ Seq(
