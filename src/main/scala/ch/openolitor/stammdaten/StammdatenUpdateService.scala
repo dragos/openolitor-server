@@ -427,6 +427,19 @@ class StammdatenUpdateService(override val sysConfig: SystemConfig) extends Even
 
   def updatePostlieferungAbo(meta: EventMetadata, id: AboId, update: PostlieferungAboModify)(implicit personId: PersonId = meta.originator): Unit = {
     DB localTxPostPublish { implicit session => implicit publisher =>
+      stammdatenWriteRepository.getById(zusatzAboMapping, id) map { abo =>
+        //map all updatable fields
+        val aktiv = IAbo.calculateAktiv(update.start, update.ende)
+        val copy = copyFrom(abo, update, "modifidat" -> meta.timestamp, "modifikator" -> personId, "aktiv" -> aktiv)
+        stammdatenWriteRepository.updateEntityFully[ZusatzAbo, AboId](copy)
+
+        modifyKoerbeForAbo(copy, Some(abo))
+      }
+    }
+  }
+  def updatePostlieferungAbo(meta: EventMetadata, id: AboId, update: PostlieferungAboModify)(implicit personId: PersonId = meta.originator) = {
+>>>>>>> 02f405c9f614b203c0b3b9b95d3b176118b03557
+    DB localTxPostPublish { implicit session => implicit publisher =>
       stammdatenWriteRepository.getById(postlieferungAboMapping, id) map { abo =>
         //map all updatable fields
         val aktiv = IAbo.calculateAktiv(update.start, update.ende)
